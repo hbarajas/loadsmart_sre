@@ -16,7 +16,7 @@ def AddAMI(template):
     template.add_mapping(
         "RegionMap",
         {
-            "us-west-2": {"AMI": "ami-fcff72cc"}
+            "us-west-2": {"AMI": "ami-0721c9af7b9b75114"}
         },
     )
 
@@ -24,7 +24,7 @@ def AddAMI(template):
 def main():
     template = Template()
 
-    template.add_description(
+    template.set_description(
         "AWS CloudFormation LoadSmart template: ELB with 1 EC2 instance"
     )
 
@@ -33,11 +33,10 @@ def main():
     # Add the Parameters
     KeyPair = template.add_parameter(
         Parameter(
-            "KeyName",
+            "loadsmartkey",
             Type="String",
-            Default="mark",
-            Description="Name of an existing EC2 KeyPair to "
-            "enable SSH access to the instance",
+            Default="loadsmart",
+            Description="key pair to ssh"
         )
     )
 
@@ -46,7 +45,7 @@ def main():
             "InstanceType",
             Type="String",
             Description="EC2 instance type",
-            Default="m1.small"
+            Default="t2.micro"
         )
     )
 
@@ -82,16 +81,19 @@ def main():
     )
 
     # Add the web server instances
-    instance = template.add_resource(
-        ec2.Instance(
-            "LoadsmartInstance1",
-            SecurityGroups=[Ref(instance_sg)],
-            KeyName=Ref(KeyPair),
-            InstanceType=Ref("InstanceType"),
-            ImageId=FindInMap("RegionMap", Ref("AWS::Region"), "AMI"),
-            UserData=Base64(Ref(webport_param)),
+    instances_list = []
+    for instance_name in ['LoadsmartInstance1', 'LoadsmartInstance2']:
+        instance = template.add_resource(
+            ec2.Instance(
+                instance_name,
+                SecurityGroups=[Ref(instance_sg)],
+                KeyName=Ref(KeyPair),
+                InstanceType=Ref("InstanceType"),
+                ImageId=FindInMap("RegionMap", Ref("AWS::Region"), "AMI"),
+                UserData=Base64(Ref(webport_param)),
+            )
         )
-    )
+        instances_list.append(instance)
 
     elasticLB = template.add_resource(
         elb.LoadBalancer(
@@ -102,7 +104,7 @@ def main():
                 Timeout=300,
             ),
             CrossZone=True,
-            Instances=[Ref(instance)],
+            Instances=[Ref(i) for i in instances_list],
             Listeners=[
                 elb.Listener(
                     LoadBalancerPort="80",
@@ -132,22 +134,22 @@ def main():
             "\'\n",
             user_data
         ])),
-        ImageId='ami-fcff72cc',
+        ImageId='ami-0721c9af7b9b75114',
         KeyName=Ref(KeyPair),
-        SecurityGroups=Ref(instance_sg),
-        IamInstanceProfile="autoscaling",
+        SecurityGroups=[Ref(instance_sg)],
+        IamInstanceProfile="loadsmart_service",
         InstanceType=Ref(InstanceType),
         ))
 
-    template.add_resource(AutoScalingGroup(
-        "LoadSmartAutoscalingGroup",
-        LoadBalancerNames=[Ref(elasticLB)],
-        MinSize='1',
-        MaxSize='2',
-        VPCZoneIdentifier=['us-west-2'],
-        LaunchConfigurationName=Ref(LoadSmartLaunchConfig),
-        TerminationPolicies=['ClosestToNextInstanceHour', 'OldestInstance', 'Default'],
-    ))
+    # template.add_resource(AutoScalingGroup(
+    #     "LoadSmartAutoscalingGroup",
+    #     LoadBalancerNames=[Ref(elasticLB)],
+    #     MinSize='2',
+    #     MaxSize='2',
+    #     VPCZoneIdentifier=['subnet-dfa25095'],
+    #     LaunchConfigurationName=Ref(LoadSmartLaunchConfig),
+    #     TerminationPolicies=['ClosestToNextInstanceHour', 'OldestInstance', 'Default'],
+    # ))
 
     template.add_output(
         Output(
@@ -157,8 +159,8 @@ def main():
         )
     )
 
-    print(template.to_json())
+    #print(template.to_json())
+    return template
 
-
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
