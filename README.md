@@ -1,6 +1,8 @@
-# loadsmart_sre
+# LoadSmart_SRE Challange
 
-Project to Create a CloudFormation Stack to execute a Flask API
+- Project Description
+ 
+Project to Create a CloudFormation Stack that will execute a Flask API
  - EC2 Instance
  - Load Balancer
  - Docker Container

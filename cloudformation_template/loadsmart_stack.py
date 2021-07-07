@@ -9,9 +9,22 @@ from troposphere.cloudformation import (InitConfig, Init, InitFile, InitFiles,
                                         WaitConditionHandle)
 
 
-user_data = """
-echo "Test user data"
+user_data = """#!/bin/bash
+set -e
+set -x
+
+yum update -y
+yum install -y git docker
+
+service docker start
+
+git clone https://hbarajas:{token}@github.com/hbarajas/loadsmart_sre.git
+cd loadsmart_sre && docker build -t loadsmart_api:latest . 
+docker run -d -p 5000:5000 loadsmart_api:latest
+
 """
+
+
 def AddAMI(template):
     template.add_mapping(
         "RegionMap",
@@ -21,7 +34,7 @@ def AddAMI(template):
     )
 
 
-def main():
+def render_template():
     template = Template()
 
     template.set_description(
@@ -57,6 +70,12 @@ def main():
             Description="TCP/IP port of the web server",
         )
     )
+
+    template.add_parameter(Parameter(
+        "ServiceName",
+        Default='default-elb',
+        Type="String",
+        Description="Service Name"))
 
     # Define the instance security group
     instance_sg = template.add_resource(
@@ -95,9 +114,9 @@ def main():
         )
         instances_list.append(instance)
 
-    elasticLB = template.add_resource(
+    LoadSmartElb = template.add_resource(
         elb.LoadBalancer(
-            "defaultelb1",
+            "LoadSmartElb",
             AvailabilityZones=GetAZs(""),
             ConnectionDrainingPolicy=elb.ConnectionDrainingPolicy(
                 Enabled=True,
@@ -112,6 +131,7 @@ def main():
                     Protocol="HTTP",
                 ),
             ],
+            LoadBalancerName=Ref('ServiceName'),
             HealthCheck=elb.HealthCheck(
                 Target=Join("", ["HTTP:", Ref(webport_param), "/"]),
                 HealthyThreshold="3",
@@ -141,25 +161,15 @@ def main():
         InstanceType=Ref(InstanceType),
         ))
 
-    # template.add_resource(AutoScalingGroup(
-    #     "LoadSmartAutoscalingGroup",
-    #     LoadBalancerNames=[Ref(elasticLB)],
-    #     MinSize='2',
-    #     MaxSize='2',
-    #     VPCZoneIdentifier=['subnet-dfa25095'],
-    #     LaunchConfigurationName=Ref(LoadSmartLaunchConfig),
-    #     TerminationPolicies=['ClosestToNextInstanceHour', 'OldestInstance', 'Default'],
-    # ))
-
     template.add_output(
         Output(
             "URL",
             Description="API URL",
-            Value=Join("", ["http://", GetAtt(elasticLB, "DNSName")]),
+            Value=Join("", ["http://", GetAtt(LoadSmartElb, "DNSName")]),
         )
     )
 
-    #print(template.to_json())
+    print(template.to_json())
     return template
 
 # if __name__ == "__main__":
