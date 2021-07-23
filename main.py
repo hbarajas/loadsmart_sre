@@ -25,8 +25,9 @@ def health_status():
 def elb_instances_operations(elbName):
 
     if request.method == 'POST':
-        elb_ops(elbName, request.json)
-        print(type(request.json))
+        instances = instances_list()
+        elb_add_instances(elbName, instances_running, request.json)
+
         response = app.response_class(
             response=json.dumps(request.json),
             mimetype='application/json'

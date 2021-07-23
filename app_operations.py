@@ -29,8 +29,16 @@ def instances_list():
 	pass
 
 
-def elb_add_instances(elbName, instances_running, instance_add):
+def elb_add_instances(elbName, elb_instances, instance_add):
 
+	# elb_instances - is a list of instances
+	# instance_add - dictionary with below structure:
+	# {'name': 'instance_id', 'description': 'instance to add'}
+	# return 400 - wrong format data
+	# return 409 - Instance already on load balancer
+	# return 201 - instance added
+
+	response = register_instances(client, elb_name, instance_id)
 	pass
 
 
