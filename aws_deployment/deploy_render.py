@@ -52,9 +52,8 @@ if __name__ == "__main__":
 	parser.add_argument(
 		'--action',
 		type=str,
-		required=True,
 		default='render',
-		help="Deploy template to AWS")
+		help="Options render or launch")
 	parser.add_argument(
 		'--stack_name',
 		type=str,

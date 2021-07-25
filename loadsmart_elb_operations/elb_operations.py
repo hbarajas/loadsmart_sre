@@ -3,28 +3,23 @@ import json
 import os
 
 
-
 def elb_validation(client, elb_name):
-	
+	"""Validate if the ELB provided exist """
 	response = client.describe_load_balancers()
 	for elb in response['LoadBalancerDescriptions']:
 		return True if elb_name == elb.get('LoadBalancerName') else False
 
 
 def get_instances(client, elb_name):
-
-	try:
-		response = client.describe_load_balancers(
-			LoadBalancerNames=[elb_name]
-		)
-		return [instance['InstanceId'] for instance in response['LoadBalancerDescriptions'][0]['Instances']]
-
-	except Exception as err:
-		print(err)
+	"""Retrive all the instances from a ELB """
+	response = client.describe_load_balancers(
+		LoadBalancerNames=[elb_name]
+	)
+	return [instance['InstanceId'] for instance in response['LoadBalancerDescriptions'][0]['Instances']]
 
 
 def instances_health(client, elb_name):
-
+	"""Get instances health within LoadBalancer """
 	instances_status = {}
 	instances_ids = get_instances(client, elb_name)
 	for ids in instances_ids:
@@ -44,34 +39,30 @@ def instances_health(client, elb_name):
 
 def register_instance(client, elb_name, instance_id):
 	"""Register an instance to a ELB """
-	try:
-		response = client.register_instances_with_load_balancer(
-			LoadBalancerName=elb_name,
-			Instances=[
-				{
-					'InstanceId': instance_id
-				}
-			]
-		)
 
-	except Exception as err:
-		print(err)
-	
+
+	response = client.register_instances_with_load_balancer(
+		LoadBalancerName=elb_name,
+		Instances=[
+			{
+				'InstanceId': instance_id
+			}
+		]
+	)
+
 	return response
 
 
 def deregister_instance(client, elb_name, instance_id):
-	try:
-		response = client.deregister_instances_from_load_balancer(
-			LoadBalancerName=elb_name,
-			Instances=[
-				{
-					'InstanceId': instance_id
-				}
-			]
-		)
-	except Exception as err:
-		print(err)
+	"""Remove/deregister an instance from the ELB """
+	response = client.deregister_instances_from_load_balancer(
+		LoadBalancerName=elb_name,
+		Instances=[
+			{
+				'InstanceId': instance_id
+			}
+		]
+	)
 
 	return response
 

@@ -25,9 +25,11 @@ def elb_healthcheck(client, elb_name):
 
 def instances_list(client, elb_name):
 
-	instances = get_instances(client, elb_name)
-
-	return instances
+	if elb_validation(client, elbName):
+		instances = get_instances(client, elb_name)
+		return instances
+	else:
+		return "resource not found"
 
 
 def elb_add_instances(elbName, instance_add):
@@ -38,15 +40,36 @@ def elb_add_instances(elbName, instance_add):
 	# return 400 - wrong format data
 	# return 409 - Instance already on load balancer
 	# return 201 - instance added
-	instances = get_instances(client, elb_name)
-	response = register_instances(client, elb_name, instance_id)
-	pass
+
+	if elb_validation(client, elbName):
+		instances = get_instances(client, elb_name)
+		if not instance_add['name'] in instances:
+			response = register_instances(client, elb_name, instance_id)
+
+			return {
+				'message': "Instance added",
+				'status_code': '201'
+			}, 201
+
+		else:
+			return {
+				'message': 'Instance already on load balancer',
+				'status_code': '409'}, 409 
 
 
 def elb_remove_instances():
-	pass
-
-
-def elb_validation(client, elb_name):
-	pass
+	if elb_validation(client, elbName):
+		instances = get_instances(client, elb_name)
+		if not instance_add['name'] in instances:
+			return {
+				'message': 'Instance not found in load balancer',
+				'status_code': ''
+			}
+		else:
+			response = deregister_instance(client, elbName)
+			if response.get('ResponseMetadata')['HTTPStatusCode'] == 200:
+				return {
+					'message': 'Instance removed/deregistered from ELB',
+					'status_code': 200
+				}, 200
 
