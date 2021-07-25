@@ -3,6 +3,14 @@ import json
 import os
 
 
+
+def elb_validation(client, elb_name):
+	
+	response = client.describe_load_balancers()
+	for elb in response['LoadBalancerDescriptions']:
+		return True if elb_name == elb.get('LoadBalancerName') else False
+
+
 def get_instances(client, elb_name):
 
 	try:
@@ -12,7 +20,7 @@ def get_instances(client, elb_name):
 		return [instance['InstanceId'] for instance in response['LoadBalancerDescriptions'][0]['Instances']]
 
 	except Exception as err:
-		return None
+		print(err)
 
 
 def instances_health(client, elb_name):
@@ -53,8 +61,19 @@ def register_instance(client, elb_name, instance_id):
 
 
 def deregister_instance(client, elb_name, instance_id):
+	try:
+		response = client.deregister_instances_from_load_balancer(
+			LoadBalancerName=elb_name,
+			Instances=[
+				{
+					'InstanceId': instance_id
+				}
+			]
+		)
+	except Exception as err:
+		print(err)
 
-	pass
+	return response
 
 
 # if __name__ == '__main__':

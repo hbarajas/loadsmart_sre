@@ -34,7 +34,7 @@ def AddAMI(template):
     )
 
 
-def render_template():
+def aws_template():
     template = Template()
 
     template.set_description(
@@ -133,7 +133,7 @@ def render_template():
             ],
             LoadBalancerName=Ref('ServiceName'),
             HealthCheck=elb.HealthCheck(
-                Target=Join("", ["HTTP:", Ref(webport_param), "/"]),
+                Target=Join("", ["HTTP:", Ref(webport_param), "/healthcheck"]),
                 HealthyThreshold="3",
                 UnhealthyThreshold="5",
                 Interval="30",
@@ -171,6 +171,3 @@ def render_template():
 
     print(template.to_json())
     return template
-
-# if __name__ == "__main__":
-#     main()

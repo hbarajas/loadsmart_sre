@@ -1,17 +1,28 @@
 import boto3
 from flask import Flask, json, request
+from flask_expects_json import expects_json
 from app_operations import *
-from loadsmart_elb_operations.elb_healthcheck import (
+from app_operations import (
     instances_health, get_instances)
 
 app = Flask(__name__)
 
 
+schema = {
+    'type': 'object',
+    'properties': {
+        'name': {'type': 'string'},
+        'description': {'type': 'string'},
+    },
+    'required': ['name']
+}
+
 @app.route('/healthcheck')
 def health_status():
 
     elb_name = 'default-elb'
-    data = elb_healthcheck()
+    client = boto3.client('elb', 'us-west-2')
+    data = elb_healthcheck(client, elb_name)
     response = app.response_class(
         response=json.dumps(data),
         status=data['status_code'],
@@ -22,11 +33,12 @@ def health_status():
 
 
 @app.route('/elb/<elbName>', methods=['GET', 'POST', 'DELETE'])
+@expects_json(schema, ignore_for=['GET'])
 def elb_instances_operations(elbName):
 
+    client = boto3.client('elb', 'us-west-2')
     if request.method == 'POST':
-        instances = instances_list()
-        elb_add_instances(elbName, instances_running, request.json)
+        elb_add_instances(elbName, request.json)
 
         response = app.response_class(
             response=json.dumps(request.json),
@@ -39,28 +51,7 @@ def elb_instances_operations(elbName):
 
     elif request.method == "GET":
         pass
-    else:
-        client = boto3.client('elb', 'us-west-2')
-        res = get_instances(client, elbName)
 
-        if res:
-            data = {
-                      'status_code': 200,
-                      'Description': 'Instances Listed',
-                      'instances_id': res
-                   }
-        else:
-            data = {
-                      'status_code': 401,
-                      "Description": 'The ELB does not exist'
-                   }
-
-        response = app.response_class(
-            response=json.dumps(data),
-            mimetype='application/json'
-        )
-
-        return response
 
 if __name__ == '__main__':
     app.run(debug=True)

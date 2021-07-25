@@ -1,7 +1,6 @@
 import json
 from loadsmart_elb_operations.elb_operations import *
 
-client = boto3.client('elb', 'us-west-2')
 
 def elb_healthcheck(client, elb_name):
 
@@ -24,12 +23,14 @@ def elb_healthcheck(client, elb_name):
 	return res
 
 
-def instances_list():
+def instances_list(client, elb_name):
 
-	pass
+	instances = get_instances(client, elb_name)
+
+	return instances
 
 
-def elb_add_instances(elbName, elb_instances, instance_add):
+def elb_add_instances(elbName, instance_add):
 
 	# elb_instances - is a list of instances
 	# instance_add - dictionary with below structure:
@@ -37,7 +38,7 @@ def elb_add_instances(elbName, elb_instances, instance_add):
 	# return 400 - wrong format data
 	# return 409 - Instance already on load balancer
 	# return 201 - instance added
-
+	instances = get_instances(client, elb_name)
 	response = register_instances(client, elb_name, instance_id)
 	pass
 
@@ -46,6 +47,6 @@ def elb_remove_instances():
 	pass
 
 
-def elb_ops(elbName, request_ops):
+def elb_validation(client, elb_name):
 	pass
 
