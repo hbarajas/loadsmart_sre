@@ -18,7 +18,7 @@ yum install -y git docker
 
 service docker start
 
-git clone https://hbarajas:{token}@github.com/hbarajas/loadsmart_sre.git
+git clone https://github.com/hbarajas/loadsmart_sre.git
 cd loadsmart_sre && docker build -t loadsmart_api:latest . 
 docker run -d -p 5000:5000 loadsmart_api:latest
 
@@ -77,6 +77,9 @@ def aws_template():
         Type="String",
         Description="Service Name"))
 
+    LoadSmartWaitHandle = template.add_resource(WaitConditionHandle(
+        "LoadSmartWaitHandle",
+    ))
     # Define the instance security group
     instance_sg = template.add_resource(
         ec2.SecurityGroup(
@@ -109,7 +112,12 @@ def aws_template():
                 KeyName=Ref(KeyPair),
                 InstanceType=Ref("InstanceType"),
                 ImageId=FindInMap("RegionMap", Ref("AWS::Region"), "AMI"),
-                UserData=Base64(Ref(webport_param)),
+                UserData=Base64(Join("", [
+                    "#!/bin/bash\nWAIT=\'",
+                    Ref(LoadSmartWaitHandle),
+                    "\'\n",
+                    user_data
+                ])),
             )
         )
         instances_list.append(instance)
@@ -142,25 +150,6 @@ def aws_template():
         )
     )
 
-    LoadSmartWaitHandle = template.add_resource(WaitConditionHandle(
-        "LoadSmartWaitHandle",
-    ))
-
-    LoadSmartLaunchConfig = template.add_resource(LaunchConfiguration(
-        "LoadSmartLaunchConfig",
-        UserData=Base64(Join("", [
-            "#!/bin/bash\nWAIT=\'",
-            Ref(LoadSmartWaitHandle),
-            "\'\n",
-            user_data
-        ])),
-        ImageId='ami-0721c9af7b9b75114',
-        KeyName=Ref(KeyPair),
-        SecurityGroups=[Ref(instance_sg)],
-        IamInstanceProfile="loadsmart_service",
-        InstanceType=Ref(InstanceType),
-        ))
-
     template.add_output(
         Output(
             "URL",
@@ -169,5 +158,5 @@ def aws_template():
         )
     )
 
-    print(template.to_json())
+    #print(template.to_json())
     return template

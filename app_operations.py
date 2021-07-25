@@ -7,7 +7,7 @@ def elb_healthcheck(client, elb_name):
 	health = True
 	instances_state = instances_health(client, elb_name)
     if 'OutOfService' in instances_state.values():
-        health = False
+    	health = False
 
     if health:
         res = {

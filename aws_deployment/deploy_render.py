@@ -12,7 +12,7 @@ def deploy(stack_name, template):
 
 	response = client.create_stack(
 		StackName=stack_name,
-		TemplateBody=template,
+		TemplateBody=template.to_json(),
 		)
 	
 	return response
@@ -38,14 +38,15 @@ def main(args):
 		print(response)
 
 	elif args.action == 'render':
-		output = render()
+		template = aws_template()
+		output = render(template)
 		print(output)
 
 	else:
 		raise Exception("Action not supported, please use one of this two options deploy/render")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 	parser = argparse.ArgumentParser(
 		description='Create and deploy cloudformation template to AWS')
 	parser.add_argument(
