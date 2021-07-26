@@ -109,6 +109,7 @@ def aws_template():
             ec2.Instance(
                 instance_name,
                 SecurityGroups=[Ref(instance_sg)],
+                IamInstanceProfile="loadsmart_service"
                 KeyName=Ref(KeyPair),
                 InstanceType=Ref("InstanceType"),
                 ImageId=FindInMap("RegionMap", Ref("AWS::Region"), "AMI"),
@@ -141,7 +142,7 @@ def aws_template():
             ],
             LoadBalancerName=Ref('ServiceName'),
             HealthCheck=elb.HealthCheck(
-                Target=Join("", ["HTTP:", Ref(webport_param), "/healthcheck"]),
+                Target=Join("", ["HTTP:", Ref(webport_param), "/health"]),
                 HealthyThreshold="3",
                 UnhealthyThreshold="5",
                 Interval="30",

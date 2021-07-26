@@ -17,6 +17,16 @@ schema = {
     'required': ['name']
 }
 
+@app.route('/health')
+def health:
+    response = app.response_class(
+        response={'message': 'OK'},
+        status='200',
+        mimetype='application/json'
+    )
+
+    return response
+
 @app.route('/healthcheck')
 def health_status():
 
