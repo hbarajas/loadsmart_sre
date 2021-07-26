@@ -18,7 +18,7 @@ schema = {
 }
 
 @app.route('/health')
-def health:
+def health():
     response = app.response_class(
         response={'message': 'OK'},
         status='200',
