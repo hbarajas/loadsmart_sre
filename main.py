@@ -48,19 +48,29 @@ def elb_instances_operations(elbName):
 
     client = boto3.client('elb', 'us-west-2')
     if request.method == 'POST':
-        elb_add_instances(elbName, request.json)
+        data = elb_add_instances(client, elbName, request.json)
 
         response = app.response_class(
-            response=json.dumps(request.json),
+            response=json.dumps(data),
             mimetype='application/json'
         )
         return response
 
     elif request.method == "DELETE":
-        pass
+        data = elb_remove_instances(client, elbName. request.json)
+        response = app.response_class(
+            response=json.dumps(data),
+            mimetype='application/json'
+        )
+        return response
 
     elif request.method == "GET":
-        pass
+        data = instances_list(client, elbName)
+        response = app.response_class(
+            response=json.dumps(data),
+            mimetype='application/json'
+        )
+        return response
 
 
 if __name__ == '__main__':

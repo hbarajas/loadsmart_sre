@@ -39,7 +39,7 @@ def instances_list(client, elbName):
 			'status_code': '401'
 		}
 
-def elb_add_instances(elbName, instance_add):
+def elb_add_instances(client, elbName, instance_add):
 
 	# elb_instances - is a list of instances
 	# instance_add - dictionary with below structure:
@@ -51,7 +51,7 @@ def elb_add_instances(elbName, instance_add):
 	if elb_validation(client, elbName):
 		instances = get_instances(client, elbName)
 		if not instance_add['name'] in instances:
-			response = register_instances(client, elbName, instance_id)
+			response = register_instances(client, elbName, instance_add['name'])
 
 			return {
 				'message': "Instance added",
@@ -68,16 +68,16 @@ def elb_add_instances(elbName, instance_add):
 			'status_code': '401'
 		}
 
-def elb_remove_instances(client, elbName):
+def elb_remove_instances(client, elbName, instance_revome):
 	if elb_validation(client, elbName):
 		instances = get_instances(client, elbName)
-		if not instance_add['name'] in instances:
+		if not instance_revome['name'] in instances:
 			return {
 				'message': 'Instance not found in load balancer',
 				'status_code': ''
 			}
 		else:
-			response = deregister_instance(client, elbName)
+			response = deregister_instance(client, elbName, instance_revome['name'])
 			if response.get('ResponseMetadata')['HTTPStatusCode'] == 200:
 				return {
 					'message': 'Instance removed/deregistered from ELB',
