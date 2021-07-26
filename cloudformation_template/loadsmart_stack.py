@@ -20,7 +20,7 @@ service docker start
 
 git clone https://github.com/hbarajas/loadsmart_sre.git
 cd loadsmart_sre && docker build -t loadsmart_api:latest . 
-docker run -d -p 5000:5000 loadsmart_api:latest
+docker run -d -p 8080:8080 loadsmart_api:latest
 
 """
 
