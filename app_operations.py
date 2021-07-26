@@ -51,7 +51,7 @@ def elb_add_instances(client, elbName, instance_add):
 	if elb_validation(client, elbName):
 		instances = get_instances(client, elbName)
 		if not instance_add['name'] in instances:
-			response = register_instances(client, elbName, instance_add['name'])
+			response = register_instance(client, elbName, instance_add['name'])
 
 			return {
 				'message': "Instance added",
