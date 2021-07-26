@@ -109,7 +109,7 @@ def aws_template():
             ec2.Instance(
                 instance_name,
                 SecurityGroups=[Ref(instance_sg)],
-                IamInstanceProfile="loadsmart_service"
+                IamInstanceProfile="loadsmart_service",
                 KeyName=Ref(KeyPair),
                 InstanceType=Ref("InstanceType"),
                 ImageId=FindInMap("RegionMap", Ref("AWS::Region"), "AMI"),
