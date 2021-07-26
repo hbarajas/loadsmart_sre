@@ -2,35 +2,42 @@ import json
 from loadsmart_elb_operations.elb_operations import *
 
 
-def elb_healthcheck(client, elb_name):
+def elb_healthcheck(client, elbName):
 
 	health = True
-	instances_state = instances_health(client, elb_name)
-    if 'OutOfService' in instances_state.values():
-    	health = False
+	if elb_validation(client, elbName):
+		instances_state = instances_health(client, elbName)
+		if 'OutOfService' in instances_state.values():
+			health = False
 
-    if health:
-        res = {
-                'status_code': 200,
-                'Description': 'The service is up'
-              }
-    else:
-        res = {
-                'status_code': 400,
-                'Description': 'The service is down'
-              }
+		if health:
+			res = {
+					'status_code': '200',
+					'Description': 'The service is up'
+				  }
+		else:
+			res = {
+					'status_code': '400',
+					'Description': 'The service is down'
+				  }
 
-	return res
+		return res
+	else:
+		return {
+			'message': 'ELB Not Found',
+			'status_code': '401'
+		}
 
-
-def instances_list(client, elb_name):
+def instances_list(client, elbName):
 
 	if elb_validation(client, elbName):
-		instances = get_instances(client, elb_name)
+		instances = get_instances(client, elbName)
 		return instances
 	else:
-		return "resource not found"
-
+		return {
+			'message': 'ELB Not Found',
+			'status_code': '401'
+		}
 
 def elb_add_instances(elbName, instance_add):
 
@@ -42,9 +49,9 @@ def elb_add_instances(elbName, instance_add):
 	# return 201 - instance added
 
 	if elb_validation(client, elbName):
-		instances = get_instances(client, elb_name)
+		instances = get_instances(client, elbName)
 		if not instance_add['name'] in instances:
-			response = register_instances(client, elb_name, instance_id)
+			response = register_instances(client, elbName, instance_id)
 
 			return {
 				'message': "Instance added",
@@ -55,11 +62,15 @@ def elb_add_instances(elbName, instance_add):
 			return {
 				'message': 'Instance already on load balancer',
 				'status_code': '409'}, 409 
+	else:
+		return {
+			'message': 'ELB Not Found',
+			'status_code': '401'
+		}
 
-
-def elb_remove_instances():
+def elb_remove_instances(client, elbName):
 	if elb_validation(client, elbName):
-		instances = get_instances(client, elb_name)
+		instances = get_instances(client, elbName)
 		if not instance_add['name'] in instances:
 			return {
 				'message': 'Instance not found in load balancer',
@@ -72,4 +83,8 @@ def elb_remove_instances():
 					'message': 'Instance removed/deregistered from ELB',
 					'status_code': 200
 				}, 200
-
+	else:
+		return {
+			'message': 'ELB Not Found',
+			'status_code': '401'
+		}
