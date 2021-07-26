@@ -57,7 +57,7 @@ def elb_instances_operations(elbName):
         return response
 
     elif request.method == "DELETE":
-        data = elb_remove_instances(client, elbName. request.json)
+        data = elb_remove_instances(client, elbName, request.json)
         response = app.response_class(
             response=json.dumps(data),
             mimetype='application/json'
