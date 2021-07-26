@@ -134,7 +134,7 @@ def aws_template():
             Instances=[Ref(i) for i in instances_list],
             Listeners=[
                 elb.Listener(
-                    LoadBalancerPort="80",
+                    LoadBalancerPort="8080",
                     InstancePort=Ref(webport_param),
                     Protocol="HTTP",
                 ),
