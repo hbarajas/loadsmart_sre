@@ -65,10 +65,3 @@ def deregister_instance(client, elb_name, instance_id):
 	)
 
 	return response
-
-
-# if __name__ == '__main__':
-# 	client = boto3.client('elb', 'us-west-2')
-# 	instances = instances_health(client, 'default-elb')
-# 	print(instances)
-# 	#return instances_status

@@ -159,5 +159,4 @@ def aws_template():
         )
     )
 
-    #print(template.to_json())
     return template
